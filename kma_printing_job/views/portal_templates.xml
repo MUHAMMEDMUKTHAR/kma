@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_my_home_printing" name="Printing Jobs" inherit_id="portal.portal_my_home" customize_show="True" priority="40">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Printing Jobs</t>
+                <t t-set="url" t-value="'/my/printing_jobs'"/>
+                <t t-set="placeholder_count" t-value="'printing_job_count'"/>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="portal_breadcrumbs_printing" inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li t-if="page_name == 'printing_job' and not job" class="breadcrumb-item active">Printing Jobs</li>
+            <li t-if="page_name == 'printing_job' and job" class="breadcrumb-item">
+                <a t-attf-href="/my/printing_jobs?{{ keep_query() }}">Printing Jobs</a>
+            </li>
+            <li t-if="page_name == 'printing_job' and job" class="breadcrumb-item active" t-out="job.name"/>
+        </xpath>
+    </template>
+
+    <!-- One pill style for the whole portal: amber = we need you, navy = we are working,
+         green = finished. `stage`, and `pill_extra` for a wrapper class. -->
+    <template id="portal_stage_pill">
+        <t t-set="_tone" t-value="{'artwork_pending': 'prep', 'awaiting_approval': 'wait', 'approved': 'prod',
+                                   'in_production': 'prod', 'qc': 'prod', 'ready': 'done',
+                                   'delivered': 'done'}.get(stage, 'prep')"/>
+        <t t-set="_icon" t-value="{'wait': 'fa-hourglass-half', 'prep': 'fa-paint-brush',
+                                   'prod': 'fa-cogs', 'done': 'fa-check-circle'}.get(_tone, 'fa-circle-o')"/>
+        <span t-attf-class="o_kma_pill o_kma_pill_{{ _tone }}">
+            <i t-attf-class="fa {{ _icon }}" aria-hidden="true"/>
+            <t t-out="label"/>
+        </span>
+    </template>
+
+    <template id="portal_my_printing_jobs" name="My Printing Jobs">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="portal.portal_searchbar"><t t-set="title">Printing Jobs</t></t>
+            <t t-if="not jobs"><div class="alert alert-info">You have no printing jobs yet.</div></t>
+            <div t-if="jobs" class="o_kma_portal_list">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr class="active">
+                            <th>Job</th>
+                            <th>Order</th>
+                            <th>Items</th>
+                            <th>Deadline</th>
+                            <th class="text-end">Status</th>
+                        </tr>
+                    </thead>
+                    <t t-foreach="jobs" t-as="j">
+                        <tr>
+                            <td><a class="o_kma_job_ref" t-att-href="j.get_portal_url()" t-out="j.name"/></td>
+                            <td t-out="j.sale_order_id.name"/>
+                            <td t-out="j.line_summary"/>
+                            <td><span t-field="j.date_deadline"/></td>
+                            <td class="text-end">
+                                <t t-call="kma_printing_job.portal_stage_pill">
+                                    <t t-set="stage" t-value="j.stage"/>
+                                    <t t-set="label" t-value="'Waiting for your approval' if j.stage == 'awaiting_approval' else dict(j._fields['stage']._description_selection(j.env)).get(j.stage)"/>
+                                </t>
+                            </td>
+                        </tr>
+                    </t>
+                </t>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_printing_job_page" name="Printing Job">
+        <t t-call="portal.portal_layout">
+            <t t-set="token" t-value="request.params.get('access_token') or ''"/>
+            <t t-set="items" t-value="job.line_ids.filtered(lambda l: l.stage != 'cancel')"/>
+            <t t-set="waiting" t-value="items.filtered(lambda l: l.stage == 'awaiting_approval')"/>
+            <t t-set="done" t-value="items.filtered(lambda l: l.stage in ('ready', 'delivered'))"/>
+
+            <div class="o_kma_portal_job mt-3">
+
+                <div t-if="message == 'approve' and message_item" class="o_kma_callout o_kma_callout_ok">
+                    <i class="fa fa-check-circle" aria-hidden="true"/>
+                    <div>
+                        <b>Thank you.</b> <t t-out="message_item.product_id.name"/> is approved and goes
+                        straight into printing. You will see it move along the tracker below.
+                    </div>
+                </div>
+                <div t-if="message == 'reject' and message_item" class="o_kma_callout o_kma_callout_info">
+                    <i class="fa fa-undo" aria-hidden="true"/>
+                    <div>
+                        <b>Thank you.</b> We have your changes for <t t-out="message_item.product_id.name"/>.
+                        Our designer is on it and you will get a new proof to look at.
+                    </div>
+                </div>
+
+                <!-- hero -->
+                <div class="o_kma_hero">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md">
+                            <div class="o_kma_hero_eyebrow">Printing Job</div>
+                            <h1 t-out="job.name"/>
+                            <div class="o_kma_hero_meta">
+                                Order <t t-out="job.sale_order_id.name"/>
+                                <span class="o_kma_sep">|</span>
+                                <t t-out="len(items)"/> item<t t-if="len(items) != 1">s</t>
+                                <t t-if="job.date_deadline">
+                                    <span class="o_kma_sep">|</span>
+                                    Due <span t-field="job.date_deadline"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="col-md-auto">
+                            <div class="d-flex align-items-center gap-4 justify-content-md-end">
+                                <div class="o_kma_hero_stat">
+                                    <div class="o_kma_hero_stat_v"><t t-out="len(done)"/> / <t t-out="len(items)"/></div>
+                                    <div class="o_kma_hero_stat_l">Ready</div>
+                                </div>
+                                <span class="o_kma_pill o_kma_pill_hero">
+                                    <i t-attf-class="fa {{ 'fa-hourglass-half' if job.stage == 'awaiting_approval' else ('fa-check-circle' if job.stage in ('ready', 'delivered') else 'fa-cogs') }}" aria-hidden="true"/>
+                                    <t t-if="job.stage == 'awaiting_approval'">Waiting for your approval</t>
+                                    <t t-else="" t-out="dict(job._fields['stage']._description_selection(job.env)).get(job.stage)"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- what we need -->
+                <div t-if="waiting" class="o_kma_callout o_kma_callout_wait">
+                    <i class="fa fa-hourglass-half" aria-hidden="true"/>
+                    <div>
+                        <b><t t-out="len(waiting)"/> proof<t t-if="len(waiting) != 1">s</t></b>
+                        need<t t-if="len(waiting) == 1">s</t> your approval.
+                        Each item starts printing the moment you approve it, so you do not have to wait
+                        for the rest.
+                        <div class="mt-1">
+                            <t t-foreach="waiting" t-as="w">
+                                <a t-attf-href="#item-{{ w.id }}" class="me-3"><t t-out="w.product_id.name"/></a>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- tracker -->
+                <div t-if="job.stage != 'cancel'" class="o_kma_tracker_card">
+                    <t t-out="job.timeline_html"/>
+                </div>
+
+                <!-- items -->
+                <t t-foreach="items.sorted(lambda l: (l.stage != 'awaiting_approval', l.sequence, l.id))" t-as="line">
+                    <t t-set="proof" t-value="line.current_proof_id"/>
+                    <t t-set="shown" t-value="proof if proof and proof.state != 'draft' else line.proof_ids.filtered(lambda p: p.state != 'draft')[:1]"/>
+                    <t t-set="history" t-value="line.proof_ids.filtered(lambda p: p.state != 'draft')"/>
+
+                    <div t-attf-class="card o_kma_item {{ 'o_kma_item_waiting' if line.stage == 'awaiting_approval' else '' }}"
+                         t-att-id="'item-%s' % line.id">
+                        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="min-w-0">
+                                <div class="o_kma_item_name text-truncate" t-out="line.product_id.name"/>
+                                <div class="o_kma_item_qty"><t t-out="'%g' % line.product_uom_qty"/> <t t-out="line.product_uom.name"/></div>
+                            </div>
+                            <t t-call="kma_printing_job.portal_stage_pill">
+                                <t t-set="stage" t-value="line.stage"/>
+                                <t t-set="label">
+                                    <t t-if="line.stage == 'awaiting_approval'">Waiting for your approval</t>
+                                    <t t-elif="line.stage == 'artwork_pending' and line.proof_state == 'rejected'">Revising artwork</t>
+                                    <t t-elif="line.stage == 'artwork_pending'">Preparing your proof</t>
+                                    <t t-elif="line.stage == 'approved'">Approved</t>
+                                    <t t-elif="line.stage == 'in_production'">Printing</t>
+                                    <t t-elif="line.stage == 'qc'">Quality check</t>
+                                    <t t-elif="line.stage == 'ready'">Ready</t>
+                                    <t t-else="">Delivered</t>
+                                </t>
+                            </t>
+                        </div>
+
+                        <div class="row g-0">
+                            <div class="col-lg-7 text-center o_kma_proof_view">
+                                <t t-if="shown">
+                                    <t t-set="proof_url" t-value="'/my/printing_jobs/%s/proof/%s?access_token=%s' % (job.id, shown.id, token)"/>
+                                    <div t-if="shown.mimetype and shown.mimetype.startswith('image/')"
+                                         class="o_kma_proof_frame">
+                                        <img t-att-src="proof_url" class="img-fluid" loading="lazy" decoding="async"
+                                             t-attf-alt="{{ shown.name }} of {{ line.product_id.name }}"/>
+                                        <div class="o_kma_proof_actions">
+                                            <a t-att-href="proof_url + '&amp;download=1'" class="btn btn-sm btn-kma-download"
+                                               t-attf-aria-label="Download {{ shown.name }} of {{ line.product_id.name }}">
+                                                <i class="fa fa-download me-1" aria-hidden="true"/>Download <t t-out="shown.name"/>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <t t-elif="shown.mimetype == 'application/pdf'">
+                                        <iframe t-att-src="proof_url" style="width:100%;height:480px;border:0"
+                                                t-attf-title="{{ shown.name }} of {{ line.product_id.name }}"/>
+                                        <div class="mt-3">
+                                            <a t-att-href="proof_url + '&amp;download=1'" class="btn btn-sm btn-kma-download">
+                                                <i class="fa fa-download me-1" aria-hidden="true"/>Download <t t-out="shown.name"/>
+                                            </a>
+                                        </div>
+                                    </t>
+                                </t>
+                                <div t-else="" class="o_kma_proof_empty">
+                                    <i class="fa fa-paint-brush" aria-hidden="true"/>
+                                    <div><b>Your Proof Is Being Prepared</b></div>
+                                    <div class="small">We will email you as soon as it is ready to look at.</div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-5 o_kma_side d-flex flex-column gap-3">
+                                <div t-if="line.name" class="o_kma_spec" t-out="line.name"/>
+
+                                <form t-if="line.stage == 'awaiting_approval' and proof" class="o_kma_decision"
+                                      t-attf-action="/my/printing_jobs/{{ job.id }}/item/{{ line.id }}/decision" method="post">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <input type="hidden" name="access_token" t-att-value="token"/>
+                                    <div class="o_kma_decision_title">Please Check <t t-out="proof.name"/></div>
+                                    <div class="o_kma_decision_sub">
+                                        Look at the spelling, the phone numbers and the colours. Once you
+                                        approve, this goes to the press as it is.
+                                    </div>
+                                    <label t-att-for="'comment-%s' % line.id" class="form-label small fw-semibold">
+                                        Need something changed? Tell us here
+                                    </label>
+                                    <textarea t-att-id="'comment-%s' % line.id" name="comment" class="form-control mb-3" rows="3"
+                                              placeholder="e.g. Make the logo bigger, change the phone number to 013 123 4567…"/>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button type="submit" name="decision" value="approve" class="btn btn-kma-approve">
+                                            <i class="fa fa-check me-1" aria-hidden="true"/>Approve &amp; Print
+                                        </button>
+                                        <button type="submit" name="decision" value="reject" class="btn btn-kma-changes">
+                                            <i class="fa fa-undo me-1" aria-hidden="true"/>Request Changes
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div t-if="line.stage == 'artwork_pending' and line.proof_state == 'rejected'"
+                                     class="o_kma_status o_kma_status_prod">
+                                    <i class="fa fa-paint-brush" aria-hidden="true"/>
+                                    <div>
+                                        <div>We are working on your changes.</div>
+                                        <div class="o_kma_status_sub">A new proof is on its way to you.</div>
+                                    </div>
+                                </div>
+                                <div t-if="line.stage == 'approved'" class="o_kma_status o_kma_status_prod">
+                                    <i class="fa fa-check" aria-hidden="true"/>
+                                    <div>
+                                        <div>Approved. Scheduled for printing.</div>
+                                        <div class="o_kma_status_sub">Nothing further is needed from you.</div>
+                                    </div>
+                                </div>
+                                <div t-if="line.stage == 'in_production'" class="o_kma_status o_kma_status_prod">
+                                    <i class="fa fa-cogs" aria-hidden="true"/>
+                                    <div>
+                                        <div>On the press now.</div>
+                                        <div class="o_kma_status_sub">Printing from the proof you approved.</div>
+                                    </div>
+                                </div>
+                                <div t-if="line.stage == 'qc'" class="o_kma_status o_kma_status_prod">
+                                    <i class="fa fa-search" aria-hidden="true"/>
+                                    <div>
+                                        <div>Printed. In final quality check.</div>
+                                        <div class="o_kma_status_sub">We check colour, trim and finishing before it leaves us.</div>
+                                    </div>
+                                </div>
+                                <div t-if="line.stage in ('ready', 'delivered')" class="o_kma_status o_kma_status_done">
+                                    <i class="fa fa-check-circle" aria-hidden="true"/>
+                                    <div>
+                                        <t t-if="line.stage == 'ready'">
+                                            <div>Printed and ready.</div>
+                                            <div class="o_kma_status_sub">We will be in touch about delivery or collection.</div>
+                                        </t>
+                                        <t t-else="">
+                                            <div>Delivered.</div>
+                                            <div class="o_kma_status_sub">Thank you for your order.</div>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div t-if="history">
+                                    <div class="o_kma_history_title">Proof history</div>
+                                    <ul class="o_kma_history">
+                                        <li t-foreach="history" t-as="p" t-attf-class="{{ p.state }}">
+                                            <div class="d-flex justify-content-between align-items-center gap-2">
+                                                <span class="o_kma_history_name" t-out="p.name"/>
+                                                <span t-attf-class="o_kma_pill o_kma_pill_{{ 'done' if p.state == 'approved' else ('wait' if p.state == 'rejected' else 'prep') }}">
+                                                    <t t-if="p.state == 'approved'">Approved by you</t>
+                                                    <t t-elif="p.state == 'rejected'">Changes requested</t>
+                                                    <t t-else="">Sent to you</t>
+                                                </span>
+                                            </div>
+                                            <div class="o_kma_history_meta">
+                                                <t t-if="p.date_sent">Sent <span t-field="p.date_sent" t-options='{"widget": "date"}'/></t>
+                                                <t t-if="p.date_decided"> · answered <span t-field="p.date_decided" t-options='{"widget": "date"}'/></t>
+                                            </div>
+                                            <div t-if="p.customer_comment" class="o_kma_history_note" t-out="p.customer_comment"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <div class="o_kma_help">
+                    <i class="fa fa-question-circle me-1" aria-hidden="true"/>
+                    Something not right, or need this sooner? Reply to the email we sent you and we will
+                    pick it up from there.
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>

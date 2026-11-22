@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_printing_root" name="Printing" sequence="35" web_icon="kma_printing_job,static/description/icon.png"
+              groups="kma_printing_job.group_printing_user"/>
+    <menuitem id="menu_printing_jobs" name="Jobs" parent="menu_printing_root" action="action_printing_job" sequence="10"/>
+    <menuitem id="menu_printing_items" name="Items" parent="menu_printing_root" action="action_printing_job_items" sequence="15"/>
+    <menuitem id="menu_printing_planning" name="Planning" parent="menu_printing_root" action="action_printing_job_planning" sequence="20"/>
+    <menuitem id="menu_printing_reporting" name="Reporting" parent="menu_printing_root" sequence="80"/>
+    <menuitem id="menu_printing_analysis" name="Jobs Analysis" parent="menu_printing_reporting" action="action_printing_job_analysis" sequence="10"/>
+    <menuitem id="menu_printing_config" name="Configuration" parent="menu_printing_root" sequence="90"
+              groups="kma_printing_job.group_printing_manager"/>
+    <menuitem id="menu_printing_qc" name="QC Checklist" parent="menu_printing_config" action="action_qc_template" sequence="10"/>
+    <menuitem id="menu_printing_products" name="Printable Products" parent="menu_printing_config" action="action_printable_products" sequence="20"/>
+</odoo>

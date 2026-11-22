@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_proof_reject_wizard_form" model="ir.ui.view">
+        <field name="name">kma.proof.reject.wizard.form</field>
+        <field name="model">kma.proof.reject.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Request Changes">
+                <field name="line_ids" invisible="1"/>
+                <div class="o_kma_reject_head">
+                    <div class="o_kma_reject_thumb" invisible="not proof_image">
+                        <field name="proof_image" widget="image" options="{'size': [0, 110]}"
+                               readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-muted text-uppercase small">Requesting changes on</div>
+                        <h4 class="mb-1 text-truncate"><field name="item_label" readonly="1" nolabel="1"/></h4>
+                        <div class="small text-muted"><field name="proof_label" readonly="1" nolabel="1"/></div>
+                    </div>
+                </div>
+                <group>
+                    <field name="reason_type"/>
+                </group>
+                <field name="reason" nolabel="1" class="o_kma_reject_reason"
+                       placeholder="Say it the way the designer needs to read it, for example: Make the logo bigger, use the new phone number 013 123 4567, and change the blue to the brand blue from the letterhead."/>
+                <separator string="Files from the customer (optional)"/>
+                <p class="text-muted small mb-2">A marked-up PDF, a screenshot, the corrected text. These
+                    are filed on the item as reference files, so the next proof is made from them.</p>
+                <field name="attachment_ids" widget="many2many_binary" nolabel="1"/>
+                <div class="alert alert-info mt-3 mb-0" role="alert">
+                    <i class="fa fa-info-circle me-1" title="What happens next"/>
+                    This item goes back to <b>Artwork Pending</b> and the designer gets a to-do with your
+                    note. The next proof is saved as a new version - this one is kept as history. Other
+                    items on the job are not affected.
+                </div>
+                <footer>
+                    <button name="action_confirm" type="object" string="Request Changes"
+                            class="btn-primary" icon="fa-undo"/>
+                    <button string="Discard" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

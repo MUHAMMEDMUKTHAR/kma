@@ -1,0 +1,201 @@
+.o_kma_dash {
+    padding: 16px 20px 28px;
+    background: #f7f7f9;
+    min-height: 100%;
+    overflow: auto;
+
+    .o_kma_dash_bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .o_kma_dash_title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #2b2b33;
+    }
+
+    .o_kma_dash_period .btn + .btn {
+        margin-left: 4px;
+    }
+
+    .o_kma_dash_loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 0;
+    }
+
+    // ---------------------------------------------------------- pipeline
+    .o_kma_dash_pipe {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+
+        @media (max-width: 1200px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        @media (max-width: 640px)  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .o_kma_pipe_card {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 14px 14px 12px;
+        border-radius: 8px;
+        border: 1px solid #e4e4e9;
+        border-top: 3px solid #adb5bd;
+        background: #fff;
+        cursor: pointer;
+        transition: box-shadow .12s ease, transform .12s ease;
+
+        &:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .09);
+            transform: translateY(-1px);
+        }
+
+        .o_kma_pipe_n {
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 1.1;
+            color: #2b2b33;
+        }
+
+        .o_kma_pipe_l {
+            font-size: 12px;
+            color: #6c757d;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .o_kma_pipe_artwork    { border-top-color: #f0ad4e; }
+    .o_kma_pipe_customer   { border-top-color: #d9534f; }
+    .o_kma_pipe_approved   { border-top-color: #6f42c1; }
+    .o_kma_pipe_production { border-top-color: #0d6efd; }
+    .o_kma_pipe_qc         { border-top-color: #17a2b8; }
+    .o_kma_pipe_ready      { border-top-color: #28a745; }
+
+    // -------------------------------------------------------------- KPIs
+    .o_kma_dash_kpis {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+
+        @media (max-width: 1400px) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        @media (max-width: 900px)  { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    .o_kma_dash_kpi {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        padding: 12px 14px;
+        background: #fff;
+        border: 1px solid #e4e4e9;
+        border-radius: 8px;
+
+        .o_kma_dash_kpi_l {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #8a8a99;
+        }
+
+        .o_kma_dash_kpi_v {
+            font-size: 19px;
+            font-weight: 600;
+            color: #2b2b33;
+        }
+
+        .o_kma_dash_kpi_s {
+            font-size: 11px;
+            color: #8a8a99;
+        }
+
+        &.o_kma_is_danger  .o_kma_dash_kpi_v { color: #d9534f; }
+        &.o_kma_is_warning .o_kma_dash_kpi_v { color: #f0ad4e; }
+        &.o_kma_is_success .o_kma_dash_kpi_v { color: #28a745; }
+    }
+
+    .o_kma_dash_kpi, .o_kma_pipe_card {
+        user-select: none;
+    }
+
+    // ------------------------------------------------------------ panels
+    .o_kma_dash_row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 12px;
+
+        @media (max-width: 1100px) { grid-template-columns: 1fr; }
+    }
+
+    .o_kma_dash_panel {
+        background: #fff;
+        border: 1px solid #e4e4e9;
+        border-radius: 8px;
+        padding: 14px 16px 12px;
+
+        h3 {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #6c757d;
+            margin: 0 0 10px;
+        }
+    }
+
+    .o_kma_dash_row_2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        @media (max-width: 1100px) { grid-template-columns: 1fr; }
+    }
+
+    .o_kma_chart_box {
+        position: relative;
+        height: 240px;
+    }
+
+    // ------------------------------------------------------------ tables
+    .o_kma_dash_table {
+        margin: 0;
+        font-size: 13px;
+
+        thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            color: #8a8a99;
+            font-weight: 600;
+            border-bottom: 1px solid #e4e4e9;
+            padding: 4px 6px;
+        }
+
+        tbody tr {
+            cursor: pointer;
+
+            &:hover { background: #f3f3f7; }
+        }
+
+        tbody td {
+            padding: 6px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f1f5;
+        }
+    }
+
+    .o_kma_dash_ref {
+        font-weight: 600;
+        color: #7C7BAD;
+    }
+}

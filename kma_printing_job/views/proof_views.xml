@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_printing_proof_tree" model="ir.ui.view">
+        <field name="name">kma.printing.proof.tree</field>
+        <field name="model">kma.printing.proof</field>
+        <field name="arch" type="xml">
+            <tree create="0" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'">
+                <field name="preview_image" widget="image" options="{'size': [48, 48]}" string=""/>
+                <field name="job_line_id"/>
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'"
+                       decoration-danger="state == 'rejected'" decoration-info="state == 'sent'"/>
+                <field name="date_sent"/>
+                <field name="date_decided"/>
+                <field name="decided_by"/>
+                <field name="customer_comment"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_printing_proof_kanban" model="ir.ui.view">
+        <field name="name">kma.printing.proof.kanban</field>
+        <field name="model">kma.printing.proof</field>
+        <field name="arch" type="xml">
+            <kanban create="0" class="o_kma_proof_kanban">
+                <field name="id"/>
+                <field name="state"/>
+                <field name="mimetype"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click o_kma_proof_tile">
+                            <div class="o_kma_proof_thumb">
+                                <img t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')"
+                                     t-att-src="kanban_image('kma.printing.proof', 'file', record.id.raw_value)" alt="Proof"/>
+                                <i t-else="" class="fa fa-file-pdf-o fa-3x text-muted" title="PDF proof"/>
+                            </div>
+                            <div class="small text-muted mt-2 text-truncate"><field name="product_id"/></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong><field name="name"/></strong>
+                                <field name="state" widget="badge" decoration-success="state == 'approved'"
+                                       decoration-danger="state == 'rejected'" decoration-info="state == 'sent'"/>
+                            </div>
+                            <div class="small text-muted"><field name="date_sent"/></div>
+                            <div t-if="record.customer_comment.raw_value" class="small mt-1 o_kma_wait">
+                                <i title="Comment" class="fa fa-comment me-1"/><field name="customer_comment"/></div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="view_printing_proof_search" model="ir.ui.view">
+        <field name="name">kma.printing.proof.search</field>
+        <field name="model">kma.printing.proof</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="job_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_line" string="Item" context="{'group_by': 'job_line_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_printing_proof_form" model="ir.ui.view">
+        <field name="name">kma.printing.proof.form</field>
+        <field name="model">kma.printing.proof</field>
+        <field name="arch" type="xml">
+            <form create="0">
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="job_id" readonly="1"/>
+                            <field name="job_line_id" readonly="1"/>
+                            <field name="partner_id"/>
+                            <field name="state"/>
+                            <field name="file" filename="filename" readonly="state != 'draft'"/>
+                            <field name="filename" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="date_sent"/>
+                            <field name="date_decided"/>
+                            <field name="decided_by"/>
+                            <field name="customer_comment"/>
+                        </group>
+                    </group>
+                    <field name="preview_image" widget="image" readonly="1" invisible="not preview_image" class="o_kma_proof_img"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

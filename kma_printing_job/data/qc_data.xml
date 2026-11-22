@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="qc_colour" model="kma.printing.qc.template"><field name="sequence">10</field><field name="name">Colours match the approved proof</field></record>
+    <record id="qc_size" model="kma.printing.qc.template"><field name="sequence">20</field><field name="name">Size, bleed and trim are correct</field></record>
+    <record id="qc_finishing" model="kma.printing.qc.template"><field name="sequence">30</field><field name="name">Finishing done (lamination, cutting, assembly)</field></record>
+    <record id="qc_quantity" model="kma.printing.qc.template"><field name="sequence">40</field><field name="name">Quantity counted and packed</field></record>
+</odoo>

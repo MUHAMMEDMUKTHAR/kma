@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_job_employee,job employee,model_kma_printing_job,base.group_user,1,0,0,0
+access_job_user,job user,model_kma_printing_job,group_printing_user,1,1,1,0
+access_job_manager,job manager,model_kma_printing_job,group_printing_manager,1,1,1,1
+access_job_line_employee,job line employee,model_kma_printing_job_line,base.group_user,1,0,0,0
+access_job_line_user,job line user,model_kma_printing_job_line,group_printing_user,1,1,1,1
+access_proof_employee,proof employee,model_kma_printing_proof,base.group_user,1,0,0,0
+access_proof_user,proof user,model_kma_printing_proof,group_printing_user,1,1,1,1
+access_job_qc_employee,job qc employee,model_kma_printing_job_qc,base.group_user,1,0,0,0
+access_job_qc_user,job qc user,model_kma_printing_job_qc,group_printing_user,1,1,1,1
+access_qc_template_user,qc template user,model_kma_printing_qc_template,group_printing_user,1,0,0,0
+access_qc_template_manager,qc template manager,model_kma_printing_qc_template,group_printing_manager,1,1,1,1
+access_reject_wizard_user,reject wizard user,model_kma_proof_reject_wizard,group_printing_user,1,1,1,1

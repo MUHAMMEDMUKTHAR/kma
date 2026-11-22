@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_printing" model="ir.ui.view">
+        <field name="name">mrp.production.form.printing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <div class="o_kma_mo_artwork" invisible="not printing_proof_image">
+                    <field name="printing_proof_image" widget="image" readonly="1" options="{'size': [0, 160]}"/>
+                    <div class="small text-muted">Approved artwork for this order</div>
+                </div>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="printing_job_id" invisible="not printing_job_id"/>
+                <field name="printing_job_line_id" invisible="not printing_job_line_id"/>
+                <field name="printing_proof_id" invisible="not printing_proof_id"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_production_search_printing" model="ir.ui.view">
+        <field name="name">mrp.production.search.printing</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="printing_job_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

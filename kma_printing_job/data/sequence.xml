@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_printing_job" model="ir.sequence">
+        <field name="name">Printing Job</field>
+        <field name="code">kma.printing.job</field>
+        <field name="prefix">PJ/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

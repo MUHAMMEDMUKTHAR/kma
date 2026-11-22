@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_printing_dashboard" model="ir.actions.client">
+        <field name="name">Printing Dashboard</field>
+        <field name="tag">kma_printing_dashboard</field>
+    </record>
+
+    <menuitem id="menu_printing_dashboard" name="Dashboard" parent="menu_printing_root"
+              action="action_printing_dashboard" sequence="5"/>
+</odoo>

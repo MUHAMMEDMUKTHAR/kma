@@ -1,0 +1,177 @@
+
+.o_kma_timeline_field, .o_kma_banner_field { display: block; width: 100%; }
+.o_kma_banner_field .o_kma_banner:last-child { margin-bottom: 0; }
+
+.o_kma_banner {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    > .fa { margin-top: 3px; font-size: 15px; }
+}
+
+// KPI strip
+.o_kma_kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 10px;
+    margin: 14px 0 18px;
+}
+.o_kma_kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    background: #f8f9fb;
+    min-width: 0;
+    .o_kma_kpi_label {
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #6c757d;
+    }
+    .o_kma_kpi_value, .o_field_monetary, .o_field_remaining_days { font-size: 16px; font-weight: 700; }
+    .o_field_badge { align-self: flex-start; }
+    .o_progressbar { width: 100%; }
+}
+
+// Proof card
+.o_kma_proof_card {
+    border: 1px solid #e3e6ea;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    .o_kma_proof_head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        font-weight: 600;
+        background: #f8f9fb;
+        border-bottom: 1px solid #e3e6ea;
+    }
+    .o_kma_proof_img { display: block; padding: 12px; text-align: center; background: repeating-conic-gradient(#f4f5f7 0% 25%, #fff 0% 50%) 50% / 16px 16px; }
+    .o_kma_proof_img img { max-width: 100%; max-height: 260px; object-fit: contain; box-shadow: 0 4px 14px rgba(0, 0, 0, .12); }
+    .o_kma_proof_empty { padding: 32px 16px; text-align: center; color: #8a9099; }
+}
+.o_kma_proof_img img { max-width: 100%; max-height: 420px; object-fit: contain; }
+
+// Kanban cards: left edge of the record shows the deadline status
+.o_kanban_renderer .o_kanban_record:has(.o_kma_card) {
+    border-left: 4px solid #ced4da;
+    &:has(.o_kma_dl_on_track) { border-left-color: #1b7f45; }
+    &:has(.o_kma_dl_due_soon) { border-left-color: #e0a030; }
+    &:has(.o_kma_dl_overdue) { border-left-color: #d9534f; background-color: #fff8f7; }
+    &:has(.o_kma_dl_done) { border-left-color: #adb5bd; }
+}
+.o_kma_tag { background: #f3eef2; color: #714b67; font-weight: 500; }
+.o_kma_proof_draft { background: #eef0f3; color: #495057; }
+.o_kma_proof_sent { background: #e5eef8; color: #2563a6; }
+.o_kma_proof_approved { background: #e2f4ea; color: #1b7f45; }
+.o_kma_proof_rejected { background: #fbe7e5; color: #c0352b; }
+.o_kma_wait { color: #a05e00; }
+.o_kma_progress { height: 5px; .progress-bar { background: #714b67; } }
+
+// Proof gallery
+.o_kma_proof_kanban .o_kma_proof_tile { padding: 10px; }
+.o_kma_proof_thumb {
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: repeating-conic-gradient(#f4f5f7 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+    img { max-height: 140px; max-width: 100%; object-fit: contain; }
+}
+
+// Item stage mix bar (job card / KPI)
+.o_kma_segbar {
+    display: flex;
+    gap: 2px;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #eef0f3;
+    margin-top: 4px;
+    .o_kma_seg { display: block; height: 100%; }
+}
+.o_kma_seg_artwork_pending { background: #e0a030; }
+.o_kma_seg_awaiting_approval { background: #f2c94c; }
+.o_kma_seg_approved { background: #5b7fbf; }
+.o_kma_seg_in_production { background: #714b67; }
+.o_kma_seg_qc { background: #017e84; }
+.o_kma_seg_ready { background: #1b7f45; }
+.o_kma_seg_delivered { background: #8a9099; }
+
+// Partially reached stage on the job tracker
+.o_kma_step_partial .o_kma_dot { border-color: #714b67; border-style: dashed; color: #714b67; }
+.o_kma_step_partial .o_kma_date { color: #714b67; }
+
+// Item board thumbnail
+.o_kma_thumb {
+    width: 56px; height: 56px; flex: none;
+    border-radius: 6px; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: repeating-conic-gradient(#f4f5f7 0% 25%, #fff 0% 50%) 50% / 10px 10px;
+    border: 1px solid #e3e6ea;
+    img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .fa { font-size: 22px; }
+}
+.min-w-0 { min-width: 0; }
+.o_kma_mo_artwork { margin: 8px 0 12px; img { border: 1px solid #e3e6ea; border-radius: 6px; } }
+
+// ---------------------------------------------------------------- requirement
+// The customer's brief: the designer reads this before touching the artwork, so it
+// has to look like a note somebody wrote, not like another form field.
+.o_kma_brief_nudge { font-size: 13px; }
+
+.o_kma_brief_note {
+    .note-editable, .odoo-editor-editable {
+        min-height: 150px;
+        padding: 12px 14px;
+        border: 1px solid #e3e6ea;
+        border-radius: 6px;
+        background: #fffdf7;
+        line-height: 1.5;
+    }
+}
+
+.o_kma_no_brief { background: #fdf0e3; color: #a05e00; font-weight: 500; }
+
+// ------------------------------------------------------------- reject wizard
+.o_kma_reject_head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    border: 1px solid #e3e6ea;
+    border-left: 3px solid #c0352b;
+    border-radius: 6px;
+    background: #fbfbfc;
+
+    h4 { font-size: 16px; font-weight: 600; }
+}
+
+.o_kma_reject_thumb img {
+    max-height: 110px;
+    max-width: 150px;
+    object-fit: contain;
+    border: 1px solid #e3e6ea;
+    border-radius: 4px;
+    background: repeating-conic-gradient(#f4f5f7 0% 25%, #fff 0% 50%) 50% / 12px 12px;
+}
+
+.o_kma_reject_reason textarea {
+    min-height: 110px;
+    padding: 10px 12px;
+    border: 1px solid #e3e6ea;
+    border-radius: 6px;
+    line-height: 1.5;
+}

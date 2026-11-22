@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="kma_printing_job.PrintingDashboard">
+        <div class="o_kma_dash">
+
+            <div class="o_kma_dash_bar">
+                <h2 class="o_kma_dash_title">Printing Dashboard</h2>
+                <div class="o_kma_dash_period">
+                    <button t-foreach="[7, 30, 90]" t-as="choice" t-key="choice"
+                            class="btn btn-sm"
+                            t-att-class="state.days === choice ? 'btn-primary' : 'btn-outline-secondary'"
+                            t-on-click="() => this.setPeriod(choice)">
+                        <t t-esc="choice"/> days
+                    </button>
+                    <button class="btn btn-sm btn-light ms-2" title="Refresh" t-on-click="() => this.load()">
+                        <i class="fa fa-refresh"/>
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="state.loading" class="o_kma_dash_loading">
+                <i class="fa fa-circle-o-notch fa-spin fa-2x text-muted"/>
+            </div>
+
+            <t t-else="">
+                <!-- the pipeline: where every open item is right now -->
+                <div class="o_kma_dash_pipe">
+                    <div class="o_kma_pipe_card o_kma_pipe_artwork"
+                         t-on-click="() => this.openItemsInStage('artwork_pending', 'Items: Artwork Pending')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.awaiting_artwork"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-paint-brush me-1"/>Artwork pending</span>
+                    </div>
+                    <div class="o_kma_pipe_card o_kma_pipe_customer"
+                         t-on-click="() => this.openItemsInStage('awaiting_approval', 'Items: Awaiting Approval')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.awaiting_customer"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-hourglass-half me-1"/>With customer</span>
+                    </div>
+                    <div class="o_kma_pipe_card o_kma_pipe_approved"
+                         t-on-click="() => this.openItemsInStage('approved', 'Items: Approved without a manufacturing order')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.no_mo"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-thumbs-up me-1"/>Approved, no MO</span>
+                    </div>
+                    <div class="o_kma_pipe_card o_kma_pipe_production"
+                         t-on-click="() => this.openItemsInStage('in_production', 'Items: In Production')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.in_production"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-cogs me-1"/>In production</span>
+                    </div>
+                    <div class="o_kma_pipe_card o_kma_pipe_qc"
+                         t-on-click="() => this.openItemsInStage('qc', 'Items: Quality Check')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.in_qc"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-check-square-o me-1"/>Quality check</span>
+                    </div>
+                    <div class="o_kma_pipe_card o_kma_pipe_ready"
+                         t-on-click="() => this.openItemsInStage('ready', 'Items: Ready to Deliver')">
+                        <span class="o_kma_pipe_n"><t t-esc="data.kpi.ready"/></span>
+                        <span class="o_kma_pipe_l"><i class="fa fa-cube me-1"/>Ready to deliver</span>
+                    </div>
+                </div>
+
+                <!-- the numbers around the pipeline -->
+                <div class="o_kma_dash_kpis">
+                    <div class="o_kma_dash_kpi" t-on-click="() => this.openOpenJobs()">
+                        <span class="o_kma_dash_kpi_l">Open jobs</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.open_jobs"/></span>
+                        <span class="o_kma_dash_kpi_s"><t t-esc="data.kpi.open_items"/> item(s)</span>
+                    </div>
+                    <div class="o_kma_dash_kpi" t-on-click="() => this.openOpenJobs()">
+                        <span class="o_kma_dash_kpi_l">Open order value</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="amount(data.kpi.open_value)"/></span>
+                        <span class="o_kma_dash_kpi_s">not yet delivered</span>
+                    </div>
+                    <div class="o_kma_dash_kpi o_kma_is_danger"
+                         t-on-click="() => this.openDeadline('overdue', 'Overdue Printing Jobs')">
+                        <span class="o_kma_dash_kpi_l">Overdue</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.overdue"/></span>
+                        <span class="o_kma_dash_kpi_s">past the deadline</span>
+                    </div>
+                    <div class="o_kma_dash_kpi o_kma_is_warning"
+                         t-on-click="() => this.openDeadline('due_soon', 'Printing Jobs Due Soon')">
+                        <span class="o_kma_dash_kpi_l">Due soon</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.due_soon"/></span>
+                        <span class="o_kma_dash_kpi_s">within 3 days</span>
+                    </div>
+                    <div class="o_kma_dash_kpi o_kma_is_success">
+                        <span class="o_kma_dash_kpi_l">Delivered</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.delivered_jobs"/></span>
+                        <span class="o_kma_dash_kpi_s"><t t-esc="amount(data.kpi.delivered_value)"/> in <t t-esc="data.kpi.days"/> days</span>
+                    </div>
+                    <div class="o_kma_dash_kpi">
+                        <span class="o_kma_dash_kpi_l">Approval wait</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.avg_approval_days"/></span>
+                        <span class="o_kma_dash_kpi_s">avg days, proof to approval</span>
+                    </div>
+                    <div class="o_kma_dash_kpi">
+                        <span class="o_kma_dash_kpi_l">Turnaround</span>
+                        <span class="o_kma_dash_kpi_v"><t t-esc="data.kpi.avg_turnaround_days"/></span>
+                        <span class="o_kma_dash_kpi_s">avg days, order to delivery</span>
+                    </div>
+                </div>
+
+                <div class="o_kma_dash_row o_kma_dash_row_2">
+                    <div class="o_kma_dash_panel">
+                        <h3>Open items by stage</h3>
+                        <div t-if="data.stage_mix.length" class="o_kma_chart_box">
+                            <canvas t-ref="stageChart"/>
+                        </div>
+                        <p t-else="" class="text-muted small mb-0">No open item right now.</p>
+                    </div>
+                    <div class="o_kma_dash_panel">
+                        <h3>Created vs delivered, last 8 weeks</h3>
+                        <div class="o_kma_chart_box">
+                            <canvas t-ref="trendChart"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="o_kma_dash_row">
+                    <div class="o_kma_dash_panel">
+                        <h3>Waiting on the customer</h3>
+                        <table t-if="data.waiting_approval.length" class="table table-sm o_kma_dash_table">
+                            <thead><tr><th>Item</th><th>Customer</th><th class="text-end">Waiting</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data.waiting_approval" t-as="row" t-key="row.id"
+                                    t-on-click="() => this.openItem(row.id)">
+                                    <td><span class="o_kma_dash_ref"><t t-esc="row.job"/></span> <t t-esc="row.product"/></td>
+                                    <td class="text-muted"><t t-esc="row.partner"/></td>
+                                    <td class="text-end">
+                                        <span class="badge" t-att-class="row.days >= 3 ? 'text-bg-danger' : 'text-bg-light'">
+                                            <t t-esc="row.days"/>d
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-else="" class="text-muted small mb-0">Nothing is waiting for a customer decision.</p>
+                    </div>
+
+                    <div class="o_kma_dash_panel">
+                        <h3>Approved without a manufacturing order</h3>
+                        <table t-if="data.no_mo.length" class="table table-sm o_kma_dash_table">
+                            <thead><tr><th>Item</th><th>Customer</th><th class="text-end">Since</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data.no_mo" t-as="row" t-key="row.id"
+                                    t-on-click="() => this.openItem(row.id)">
+                                    <td><span class="o_kma_dash_ref"><t t-esc="row.job"/></span> <t t-esc="row.product"/></td>
+                                    <td class="text-muted"><t t-esc="row.partner"/></td>
+                                    <td class="text-end"><span class="badge text-bg-light"><t t-esc="row.days"/>d</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-else="" class="text-muted small mb-0">Every approved item has its manufacturing order.</p>
+                    </div>
+
+                    <div class="o_kma_dash_panel">
+                        <h3>Overdue jobs</h3>
+                        <table t-if="data.overdue.length" class="table table-sm o_kma_dash_table">
+                            <thead><tr><th>Job</th><th>Stage</th><th class="text-end">Late</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data.overdue" t-as="row" t-key="row.id"
+                                    t-on-click="() => this.openJob(row.id)">
+                                    <td><span class="o_kma_dash_ref"><t t-esc="row.name"/></span>
+                                        <span class="text-muted d-block small"><t t-esc="row.partner"/></span></td>
+                                    <td class="text-muted"><t t-esc="row.stage"/></td>
+                                    <td class="text-end"><span class="badge text-bg-danger"><t t-esc="row.days"/>d</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-else="" class="text-muted small mb-0">No job is past its deadline.</p>
+                    </div>
+                </div>
+
+                <div class="o_kma_dash_row o_kma_dash_row_2">
+                    <div class="o_kma_dash_panel">
+                        <h3>Open work by customer</h3>
+                        <table t-if="data.top_customers.length" class="table table-sm o_kma_dash_table">
+                            <thead><tr><th>Customer</th><th class="text-end">Jobs</th><th class="text-end">Value</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data.top_customers" t-as="row" t-key="row.id">
+                                    <td><t t-esc="row.name"/></td>
+                                    <td class="text-end"><t t-esc="row.jobs"/></td>
+                                    <td class="text-end"><t t-esc="amount(row.amount)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-else="" class="text-muted small mb-0">No open job.</p>
+                    </div>
+                    <div class="o_kma_dash_panel">
+                        <h3>Open items by print process</h3>
+                        <table t-if="data.process_mix.length" class="table table-sm o_kma_dash_table">
+                            <thead><tr><th>Process</th><th class="text-end">Items</th></tr></thead>
+                            <tbody>
+                                <tr t-foreach="data.process_mix" t-as="row" t-key="row.label">
+                                    <td><t t-esc="row.label"/></td>
+                                    <td class="text-end"><t t-esc="row.count"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p t-else="" class="text-muted small mb-0">No open item.</p>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+</templates>

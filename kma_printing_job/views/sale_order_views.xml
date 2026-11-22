@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_printing" model="ir.ui.view">
+        <field name="name">sale.order.form.printing</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_printing_jobs" type="object" class="oe_stat_button" icon="fa-print"
+                        invisible="printing_job_count == 0">
+                    <field name="printing_job_count" widget="statinfo" string="Printing Job"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

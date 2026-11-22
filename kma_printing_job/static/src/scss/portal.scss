@@ -1,0 +1,388 @@
+// Customer-facing portal for printing jobs.
+// Brand: navy for structure and headings, green for anything approved or safe to click.
+$kma-navy:      #0E2A47;
+$kma-navy-600:  #17436E;
+$kma-navy-050:  #EEF3F9;
+$kma-green:     #1C8C5A;
+$kma-green-600: #15714A;
+$kma-green-050: #E9F6EF;
+$kma-amber:     #B06A00;
+$kma-amber-050: #FFF6E8;
+$kma-red:       #B4231E;
+$kma-red-050:   #FCEEED;
+$kma-border:    #DCE3EB;
+$kma-muted:     #64748B;
+
+.o_kma_portal_job {
+
+    // ------------------------------------------------------------- hero
+    .o_kma_hero {
+        background: linear-gradient(135deg, $kma-navy 0%, $kma-navy-600 100%);
+        color: #fff;
+        border-radius: 10px;
+        padding: 22px 24px;
+        margin-bottom: 18px;
+
+        .o_kma_hero_eyebrow {
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, .62);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin: 2px 0 6px;
+            color: #fff;
+        }
+
+        .o_kma_hero_meta {
+            font-size: 14px;
+            color: rgba(255, 255, 255, .78);
+
+            .o_kma_sep { color: rgba(255, 255, 255, .35); margin: 0 8px; }
+        }
+
+        .o_kma_hero_stat {
+            text-align: right;
+
+            .o_kma_hero_stat_v { font-size: 22px; font-weight: 600; line-height: 1.1; }
+            .o_kma_hero_stat_l {
+                font-size: 11px;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                color: rgba(255, 255, 255, .62);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------ pills
+    .o_kma_pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 12.5px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .o_kma_pill_wait { background: $kma-amber-050; color: $kma-amber; border: 1px solid rgba($kma-amber, .3); }
+    .o_kma_pill_prep { background: $kma-navy-050; color: $kma-navy-600; border: 1px solid rgba($kma-navy-600, .22); }
+    .o_kma_pill_prod { background: $kma-navy-050; color: $kma-navy-600; border: 1px solid rgba($kma-navy-600, .22); }
+    .o_kma_pill_done { background: $kma-green-050; color: $kma-green-600; border: 1px solid rgba($kma-green, .3); }
+    .o_kma_pill_hero { background: rgba(255, 255, 255, .16); color: #fff; border: 1px solid rgba(255, 255, 255, .3); }
+
+    // --------------------------------------------------------- call out
+    .o_kma_callout {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+        border: 1px solid transparent;
+
+        .fa { font-size: 17px; margin-top: 1px; }
+        a { font-weight: 600; }
+    }
+    .o_kma_callout_wait { background: $kma-amber-050; border-color: rgba($kma-amber, .35); color: #5c3a00; a { color: $kma-amber; } }
+    .o_kma_callout_ok   { background: $kma-green-050; border-color: rgba($kma-green, .35); color: #10492f; }
+    .o_kma_callout_info { background: $kma-navy-050; border-color: rgba($kma-navy-600, .25); color: $kma-navy; }
+
+    // -------------------------------------------------- stage tracker
+    // The tracker markup is shared with the backend; the portal paints it navy/green.
+    .o_kma_timeline { margin: 4px 0 2px; }
+    .o_kma_step {
+        .o_kma_dot { background: #fff; border-color: $kma-border; color: #94a3b8; }
+        .o_kma_label { color: $kma-muted; }
+    }
+    .o_kma_step_done {
+        &::before { background: $kma-green; }
+        .o_kma_dot { background: $kma-green; border-color: $kma-green; color: #fff; }
+        .o_kma_label { color: $kma-navy; font-weight: 600; }
+    }
+    .o_kma_step_current {
+        &::before { background: $kma-green; }
+        .o_kma_dot {
+            background: $kma-navy;
+            border-color: $kma-navy;
+            color: #fff;
+            box-shadow: 0 0 0 5px rgba($kma-navy, .14);
+        }
+        .o_kma_label { color: $kma-navy; font-weight: 700; }
+        .o_kma_date { color: $kma-navy-600; }
+    }
+    .o_kma_step_partial .o_kma_dot { border-color: $kma-navy; border-style: dashed; color: $kma-navy; background: #fff; }
+    .o_kma_step_partial .o_kma_date { color: $kma-navy-600; }
+
+    .o_kma_tracker_card {
+        background: #fff;
+        border: 1px solid $kma-border;
+        border-radius: 10px;
+        padding: 18px 20px 12px;
+        margin-bottom: 18px;
+    }
+
+    // ------------------------------------------------------- item card
+    .o_kma_item {
+        border: 1px solid $kma-border;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 2px rgba(14, 42, 71, .05);
+
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid $kma-border;
+            padding: 14px 18px;
+
+            .o_kma_item_name { font-size: 16px; font-weight: 600; color: $kma-navy; }
+            .o_kma_item_qty { font-size: 13px; color: $kma-muted; }
+        }
+    }
+    .o_kma_item_waiting {
+        border-color: rgba($kma-amber, .55);
+        box-shadow: 0 2px 10px rgba($kma-amber, .14);
+
+        .card-header { background: $kma-amber-050; border-bottom-color: rgba($kma-amber, .3); }
+    }
+
+    .o_kma_proof_view {
+        background: repeating-conic-gradient(#f1f4f8 0% 25%, #fff 0% 50%) 50% / 16px 16px;
+        padding: 20px 20px 56px;
+        border-right: 1px solid $kma-border;
+
+        img {
+            max-height: 420px;
+            max-width: 100%;
+            border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(14, 42, 71, .18);
+        }
+    }
+    @media (max-width: 991.98px) {
+        .o_kma_proof_view { border-right: 0; border-bottom: 1px solid $kma-border; }
+    }
+
+    // The download sits on the proof and appears on hover. It must never be
+    // hover-only: keyboard users get it through :focus-within, and touch devices
+    // (no hover at all) get it pinned under the image instead.
+    .o_kma_proof_frame {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        line-height: 0;
+    }
+
+    .o_kma_proof_actions {
+        position: absolute;
+        left: 50%;
+        top: calc(100% + 12px);
+        transform: translateX(-50%);
+        line-height: normal;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .15s ease;
+
+        .btn { box-shadow: 0 2px 8px rgba(14, 42, 71, .18); }
+    }
+
+    .o_kma_proof_frame:hover .o_kma_proof_actions,
+    .o_kma_proof_frame:focus-within .o_kma_proof_actions {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    @media (hover: none), (pointer: coarse) {
+        .o_kma_proof_view { padding-bottom: 20px; }
+        .o_kma_proof_actions {
+            position: static;
+            transform: none;
+            opacity: 1;
+            pointer-events: auto;
+            margin-top: 14px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .o_kma_proof_actions { transition: none; }
+    }
+
+    .o_kma_proof_empty {
+        padding: 56px 20px;
+        text-align: center;
+        color: $kma-muted;
+
+        .fa { font-size: 30px; color: #b6c2d1; display: block; margin-bottom: 10px; }
+    }
+
+    .o_kma_side { padding: 18px; }
+
+    .o_kma_spec {
+        font-size: 13px;
+        color: $kma-muted;
+        background: #f8fafc;
+        border-left: 3px solid $kma-border;
+        padding: 8px 12px;
+        border-radius: 0 4px 4px 0;
+        white-space: pre-line;
+    }
+
+    // ---------------------------------------------------- decision box
+    .o_kma_decision {
+        border: 1px solid rgba($kma-amber, .45);
+        background: $kma-amber-050;
+        border-radius: 8px;
+        padding: 16px;
+
+        .o_kma_decision_title {
+            font-weight: 700;
+            color: $kma-navy;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .o_kma_decision_sub { font-size: 12.5px; color: #6b5325; margin-bottom: 12px; }
+
+        textarea { border-color: #e2d4b4; font-size: 14px; }
+        textarea:focus { border-color: $kma-amber; box-shadow: 0 0 0 .2rem rgba($kma-amber, .15); }
+    }
+
+    .btn-kma-approve, .btn-kma-changes, .btn-kma-download {
+        touch-action: manipulation;
+
+        &:focus-visible {
+            outline: 3px solid $kma-navy;
+            outline-offset: 2px;
+            box-shadow: none;
+        }
+    }
+
+    .btn-kma-approve {
+        background: $kma-green;
+        border-color: $kma-green;
+        color: #fff;
+        font-weight: 600;
+        padding: 9px 18px;
+
+        &:hover, &:focus { background: $kma-green-600; border-color: $kma-green-600; color: #fff; }
+    }
+    .btn-kma-changes {
+        background: #fff;
+        border: 1px solid #c9ccd2;
+        color: #445061;
+        font-weight: 600;
+        padding: 9px 18px;
+
+        &:hover, &:focus { border-color: $kma-red; color: $kma-red; background: $kma-red-050; }
+    }
+    .btn-kma-download {
+        background: #fff;
+        border: 1px solid $kma-border;
+        color: $kma-navy;
+        font-weight: 500;
+
+        &:hover, &:focus { background: $kma-navy; border-color: $kma-navy; color: #fff; }
+    }
+
+    // while the decision is in flight
+    .o_kma_decision .btn[disabled] { opacity: .65; }
+
+    // ------------------------------------------------------ status box
+    .o_kma_status {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-size: 14px;
+
+        .fa { margin-top: 2px; }
+        .o_kma_status_sub { font-size: 12.5px; opacity: .85; }
+    }
+    .o_kma_status_prod { background: $kma-navy-050; color: $kma-navy; border: 1px solid rgba($kma-navy-600, .2); }
+    .o_kma_status_done { background: $kma-green-050; color: #10492f; border: 1px solid rgba($kma-green, .28); }
+
+    // --------------------------------------------------------- history
+    .o_kma_history_title {
+        font-size: 11px;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: $kma-muted;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .o_kma_history {
+        border-left: 2px solid $kma-border;
+        padding-left: 14px;
+        margin: 0;
+        list-style: none;
+
+        li {
+            position: relative;
+            padding: 0 0 14px;
+            font-size: 13px;
+
+            &:last-child { padding-bottom: 0; }
+
+            &::before {
+                content: "";
+                position: absolute;
+                left: -20px;
+                top: 4px;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: #fff;
+                border: 2px solid $kma-border;
+            }
+            &.approved::before { border-color: $kma-green; background: $kma-green; }
+            &.rejected::before { border-color: $kma-red; background: $kma-red; }
+            &.sent::before { border-color: $kma-navy-600; background: $kma-navy-600; }
+
+            .o_kma_history_name { font-weight: 600; color: $kma-navy; }
+            .o_kma_history_meta { color: $kma-muted; font-size: 12px; }
+            .o_kma_history_note {
+                margin-top: 4px;
+                padding: 6px 10px;
+                background: #f8fafc;
+                border-radius: 4px;
+                color: #475569;
+            }
+        }
+    }
+
+    // On a phone the two decisions must be unmistakable and easy to hit.
+    @media (max-width: 575.98px) {
+        .o_kma_hero { padding: 18px; h1 { font-size: 23px; } }
+        .o_kma_hero_stat { text-align: left; }
+        .o_kma_decision .btn { width: 100%; }
+        .o_kma_side { padding: 14px; }
+    }
+
+    .o_kma_help {
+        border-top: 1px solid $kma-border;
+        margin-top: 8px;
+        padding-top: 14px;
+        font-size: 13px;
+        color: $kma-muted;
+    }
+}
+
+// ------------------------------------------------------- job list page
+.o_kma_portal_list {
+    .o_kma_pill {
+        display: inline-flex;
+        padding: 4px 11px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .o_kma_pill_wait { background: #FFF6E8; color: #B06A00; }
+    .o_kma_pill_prep,
+    .o_kma_pill_prod { background: #EEF3F9; color: #17436E; }
+    .o_kma_pill_done { background: #E9F6EF; color: #15714A; }
+    .o_kma_job_ref { font-weight: 600; color: #0E2A47; }
+}

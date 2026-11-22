@@ -1,0 +1,46 @@
+{
+    'name': 'KMA Printing Jobs',
+    'version': '17.0.6.0.0',
+    'summary': 'Printing jobs with customer brief, item-wise artwork approval, manufacturing, QC and a dashboard',
+    'description': 'One printing job per sales order. Each printable product is an item with its own '
+                   'artwork proof, customer approval, manufacturing order and quality check. '
+                   'The job is delivered automatically when the delivery is validated.',    'author': 'MuhammedMukthar',
+    'category': 'Manufacturing',
+    'license': 'LGPL-3',
+    'depends': ['sale_management', 'sale_stock', 'mrp', 'portal', 'mail'],
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'data/sequence.xml',
+        'data/qc_data.xml',
+        'data/mail_template.xml',
+        'data/cron.xml',
+        'wizard/proof_reject_views.xml',
+        'views/proof_views.xml',
+        'views/printing_job_views.xml',
+        'views/qc_views.xml',
+        'views/product_views.xml',
+        'views/sale_order_views.xml',
+        'views/mrp_views.xml',
+        'views/menus.xml',
+        'views/dashboard_views.xml',
+        'views/portal_templates.xml',
+        'report/job_ticket.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'kma_printing_job/static/src/scss/timeline.scss',
+            'kma_printing_job/static/src/scss/printing_job.scss',
+            'kma_printing_job/static/src/dashboard/printing_dashboard.scss',
+            'kma_printing_job/static/src/dashboard/printing_dashboard.js',
+            'kma_printing_job/static/src/dashboard/printing_dashboard.xml',
+        ],
+        'web.assets_frontend': [
+            'kma_printing_job/static/src/scss/timeline.scss',
+            'kma_printing_job/static/src/scss/portal.scss',
+            'kma_printing_job/static/src/js/portal_printing.js',
+        ],
+    },
+    'installable': True,
+    'application': True,
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_template_proof_sent" model="mail.template">
+        <field name="name">Printing Job: Proof Ready for Approval</field>
+        <field name="model_id" ref="model_kma_printing_job"/>
+        <field name="subject">{{ object.company_id.name }}: your proof for {{ object.sale_order_id.name }} is ready</field>
+        <field name="email_from">{{ (object.user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="partner_to">{{ object.partner_id.id }}</field>
+        <field name="body_html" type="html">
+<div style="margin:0;padding:0;font-size:14px;">
+    <p>Dear <t t-out="object.partner_id.name or ''">Customer</t>,</p>
+    <p>Proofs for your order <strong t-out="object.sale_order_id.name or ''">S00001</strong> are ready for your review:</p>
+    <ul>
+        <t t-foreach="object.line_ids.filtered(lambda l: l.stage == 'awaiting_approval')" t-as="item">
+            <li><strong t-out="item.product_id.name or ''">Item</strong> × <t t-out="'%g' % item.product_uom_qty"/>
+                (<t t-out="item.current_proof_id.name or ''">Proof v1</t>)</li>
+        </t>
+    </ul>
+    <p>Please approve each proof or request changes. Each item goes to production as soon as its proof is approved.</p>
+    <p style="margin:24px 0;">
+        <a t-att-href="object.get_base_url() + object.get_portal_url()"
+           style="background-color:#714B67;padding:10px 18px;color:#ffffff;text-decoration:none;border-radius:4px;">Review proofs</a>
+    </p>
+    <p>Thank you,<br/><t t-out="object.company_id.name or ''">KMA Printing</t></p>
+</div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

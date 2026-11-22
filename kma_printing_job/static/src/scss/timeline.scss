@@ -1,0 +1,66 @@
+// Shared stage tracker (backend form + customer portal)
+$kma-brand: #714b67;
+$kma-ok: #1b7f45;
+$kma-line: #dee2e6;
+
+.o_kma_timeline {
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    margin: 12px 0 16px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+.o_kma_step {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 92px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
+    &::before {
+        content: "";
+        position: absolute;
+        top: 17px;
+        right: 50%;
+        width: 100%;
+        height: 3px;
+        background: $kma-line;
+        z-index: 0;
+    }
+    &:first-child::before { display: none; }
+    .o_kma_dot {
+        position: relative;
+        z-index: 1;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f1f3f5;
+        color: #8a9099;
+        border: 2px solid $kma-line;
+        font-size: 15px;
+    }
+    .o_kma_label { font-size: 12.5px; font-weight: 500; color: #6c757d; line-height: 1.2; }
+    .o_kma_date { font-size: 11px; color: #8a9099; min-height: 14px; }
+}
+.o_kma_step_done {
+    &::before { background: $kma-ok; }
+    .o_kma_dot { background: $kma-ok; border-color: $kma-ok; color: #fff; }
+    .o_kma_label { color: #212529; }
+}
+.o_kma_step_current {
+    &::before { background: $kma-ok; }
+    .o_kma_dot {
+        background: $kma-brand;
+        border-color: $kma-brand;
+        color: #fff;
+        box-shadow: 0 0 0 5px rgba($kma-brand, .18);
+    }
+    .o_kma_label { color: $kma-brand; font-weight: 700; }
+    .o_kma_date { color: $kma-brand; }
+}

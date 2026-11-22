@@ -1,0 +1,623 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================
+         Printing Job (one per sales order)
+         ============================================================ -->
+    <record id="view_printing_job_form" model="ir.ui.view">
+        <field name="name">kma.printing.job.form</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <form string="Printing Job">
+                <header>
+                    <button name="action_send_proofs" type="object" class="btn-primary" icon="fa-paper-plane"
+                            invisible="to_send_count == 0">
+                        Send Proofs (<field name="to_send_count" class="d-inline"/>)
+                    </button>
+                    <button name="action_view_deliveries" type="object" string="Deliver" class="btn-primary" icon="fa-truck"
+                            invisible="stage != 'ready'"/>
+                    <button name="action_customer_preview" type="object" string="Customer Preview" icon="fa-eye"
+                            invisible="stage == 'cancel'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="stage in ('delivered', 'cancel')" groups="kma_printing_job.group_printing_manager"
+                            confirm="Cancel this printing job and all its items?"/>
+                    <button name="action_reset" type="object" string="Reset"
+                            invisible="stage != 'cancel'" groups="kma_printing_job.group_printing_manager"/>
+                    <field name="stage" widget="statusbar" readonly="1"
+                           statusbar_visible="artwork_pending,awaiting_approval,approved,in_production,qc,ready,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sale_order" type="object" class="oe_stat_button" icon="fa-dollar">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="sale_order_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="o_stat_text">Sales Order</span>
+                            </div>
+                        </button>
+                        <button name="action_view_proofs" type="object" class="oe_stat_button" icon="fa-file-image-o"
+                                invisible="proof_count == 0">
+                            <field name="proof_count" widget="statinfo" string="Proofs"/>
+                        </button>
+                        <button name="action_view_productions" type="object" class="oe_stat_button" icon="fa-wrench"
+                                invisible="production_count == 0">
+                            <field name="production_count" widget="statinfo" string="Manufacturing"/>
+                        </button>
+                        <button name="action_view_deliveries" type="object" class="oe_stat_button" icon="fa-truck"
+                                invisible="delivery_count == 0">
+                            <field name="delivery_count" widget="statinfo" string="Delivery"/>
+                        </button>
+                        <button name="action_view_invoices" type="object" class="oe_stat_button" icon="fa-pencil-square-o"
+                                invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger" invisible="stage != 'cancel'"/>
+                    <div class="oe_title">
+                        <h1 class="d-flex align-items-center">
+                            <field name="priority" widget="priority" class="me-3"/>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <div class="d-flex flex-wrap align-items-baseline gap-2 text-muted">
+                            <field name="partner_id" readonly="1" class="fw-bold text-body" options="{'no_open': True}"/>
+                            <span>·</span><field name="item_count" readonly="1" class="d-inline"/><span>item(s)</span>
+                        </div>
+                    </div>
+                    <field name="timeline_html" nolabel="1" readonly="1" class="o_kma_timeline_field w-100" invisible="stage == 'cancel'"/>
+                    <field name="status_banner" nolabel="1" readonly="1" class="o_kma_banner_field w-100" invisible="not status_banner"/>
+                    <div class="o_kma_kpis">
+                        <div class="o_kma_kpi">
+                            <span class="o_kma_kpi_label"><i class="fa fa-calendar me-1" title="Deadline"/>Deadline</span>
+                            <field name="date_deadline" widget="remaining_days" readonly="1"/>
+                            <field name="deadline_state" widget="badge" readonly="1"
+                                   decoration-success="deadline_state == 'on_track'" decoration-warning="deadline_state == 'due_soon'"
+                                   decoration-danger="deadline_state == 'overdue'" decoration-muted="deadline_state == 'done'"/>
+                        </div>
+                        <div class="o_kma_kpi">
+                            <span class="o_kma_kpi_label"><i class="fa fa-money me-1" title="Order value"/>Order value</span>
+                            <field name="amount_total" widget="monetary" readonly="1" class="o_kma_kpi_value"/>
+                            <field name="invoice_status" widget="badge" readonly="1"
+                                   decoration-success="invoice_status == 'invoiced'" decoration-warning="invoice_status == 'to invoice'"/>
+                        </div>
+                        <div class="o_kma_kpi">
+                            <span class="o_kma_kpi_label"><i class="fa fa-file-image-o me-1" title="Artwork"/>Artwork approved</span>
+                            <span class="o_kma_kpi_value"><field name="approved_count" readonly="1" class="d-inline"/> / <field name="item_count" readonly="1" class="d-inline"/></span>
+                            <field name="artwork_percent" widget="progressbar" readonly="1"/>
+                        </div>
+                        <div class="o_kma_kpi">
+                            <span class="o_kma_kpi_label"><i class="fa fa-cogs me-1" title="Production"/>Produced</span>
+                            <span class="o_kma_kpi_value"><field name="produced_count" readonly="1" class="d-inline"/> / <field name="item_count" readonly="1" class="d-inline"/></span>
+                            <field name="production_percent" widget="progressbar" readonly="1"/>
+                        </div>
+                        <div class="o_kma_kpi">
+                            <span class="o_kma_kpi_label"><i class="fa fa-cube me-1" title="Ready"/>Ready to deliver</span>
+                            <span class="o_kma_kpi_value"><field name="ready_count" readonly="1" class="d-inline"/> / <field name="item_count" readonly="1" class="d-inline"/></span>
+                            <field name="stage_bar_html" nolabel="1" readonly="1" class="w-100"/>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page string="Items" name="items">
+                            <p class="text-muted small mb-2">Each item moves on its own. Approving its
+                                artwork creates its manufacturing order automatically. Click an item to open
+                                its requirement, proofs and quality check; drag the handle to reorder
+                                production. An amber row has no customer requirement recorded yet.</p>
+                            <field name="line_ids" readonly="stage == 'cancel'"
+                                   context="{'form_view_ref': 'kma_printing_job.view_printing_job_line_form'}">
+                                <tree create="0" delete="0" decoration-muted="stage == 'cancel'"
+                                      decoration-warning="stage == 'artwork_pending' and not has_brief">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="has_brief" column_invisible="True"/>
+                                    <field name="current_proof_image" widget="image" options="{'size': [44, 44]}" string="" readonly="1"/>
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="name" optional="hide" readonly="1"/>
+                                    <field name="product_uom_qty" readonly="1"/>
+                                    <field name="product_uom" groups="uom.group_uom" readonly="1"/>
+                                    <field name="print_process" optional="show"/>
+                                    <field name="designer_id" widget="many2one_avatar_user" optional="show"/>
+                                    <field name="brief_file_count" string="Ref" optional="show"/>
+                                    <field name="proof_version" string="Proof"/>
+                                    <field name="proof_state" widget="badge" string="Artwork"
+                                           decoration-success="proof_state == 'approved'" decoration-danger="proof_state == 'rejected'"
+                                           decoration-info="proof_state == 'sent'" decoration-muted="proof_state == 'draft'"/>
+                                    <field name="production_id" optional="show" readonly="1"/>
+                                    <field name="qc_progress" optional="hide"/>
+                                    <field name="stage" widget="badge" readonly="1"
+                                           decoration-success="stage in ('ready', 'delivered')" decoration-warning="stage in ('artwork_pending', 'awaiting_approval')"
+                                           decoration-info="stage in ('approved', 'in_production', 'qc')"/>
+                                    <button name="action_send_proof" type="object" icon="fa-paper-plane" title="Send for approval"
+                                            string="Send" class="btn-link" invisible="stage != 'artwork_pending' or proof_state != 'draft'"/>
+                                    <button name="action_approve_proof" type="object" icon="fa-check" title="Approve proof"
+                                            string="Approve" class="btn-link text-success" invisible="stage != 'awaiting_approval'"/>
+                                    <button name="action_open_reject_wizard" type="object" icon="fa-undo" title="Request changes"
+                                            string="Changes" class="btn-link text-danger" invisible="stage != 'awaiting_approval'"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Customer Brief" name="brief">
+                            <p class="text-muted small mb-2">The requirement for the whole order. Anything
+                                that applies to one product belongs on that item's Requirement tab instead.
+                                Filling this in covers every item.</p>
+                            <field name="brief_note" nolabel="1" class="o_kma_brief_note"
+                                   placeholder="What the customer asked for across the order: brand colours, fonts, contact details to print, delivery notes..."/>
+                            <separator string="Files the customer sent"/>
+                            <field name="brief_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                        </page>
+                        <page string="Details" name="details">
+                            <group>
+                                <group string="Order">
+                                    <field name="sale_order_id" readonly="1"/>
+                                    <field name="user_id" widget="many2one_avatar_user"/>
+                                    <field name="process_labels"/>
+                                    <field name="currency_id" invisible="1"/>
+                                    <field name="company_id" invisible="1"/>
+                                </group>
+                                <group string="Planning">
+                                    <field name="designer_id" widget="many2one_avatar_user" readonly="stage in ('delivered', 'cancel')"/>
+                                    <field name="date_deadline" readonly="stage in ('delivered', 'cancel')"/>
+                                    <field name="date_approved" invisible="not date_approved"/>
+                                    <field name="date_ready" invisible="not date_ready"/>
+                                    <field name="date_delivered" invisible="not date_delivered"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Production Notes" name="notes">
+                            <field name="note" placeholder="Machine settings, paper stock, special instructions..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_printing_job_tree" model="ir.ui.view">
+        <field name="name">kma.printing.job.tree</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <tree string="Printing Jobs" decoration-muted="stage == 'cancel'" sample="1">
+                <field name="priority" widget="priority" optional="show" nolabel="1"/>
+                <field name="name" decoration-bf="1"/>
+                <field name="partner_id"/>
+                <field name="sale_order_id" optional="show"/>
+                <field name="line_summary" optional="show"/>
+                <field name="process_labels" optional="hide"/>
+                <field name="designer_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="item_count" optional="show"/>
+                <field name="artwork_percent" widget="progressbar" optional="show"/>
+                <field name="production_percent" widget="progressbar" optional="show"/>
+                <field name="date_deadline" widget="remaining_days" invisible="stage in ('delivered', 'cancel')"/>
+                <field name="deadline_state" widget="badge" optional="show"
+                       decoration-success="deadline_state == 'on_track'" decoration-warning="deadline_state == 'due_soon'"
+                       decoration-danger="deadline_state == 'overdue'" decoration-muted="deadline_state == 'done'"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="amount_total" sum="Total" widget="monetary" optional="show"/>
+                <field name="stage" widget="badge"
+                       decoration-success="stage in ('ready', 'delivered')" decoration-warning="stage in ('artwork_pending', 'awaiting_approval')"
+                       decoration-info="stage in ('approved', 'in_production', 'qc')"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_printing_job_kanban" model="ir.ui.view">
+        <field name="name">kma.printing.job.kanban</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage" class="o_kanban_small_column o_kma_kanban" records_draggable="0"
+                    group_create="0" group_delete="0" group_edit="0" quick_create="0" sample="1">
+                <field name="stage"/>
+                <field name="priority"/>
+                <field name="deadline_state"/>
+                <field name="process_labels"/>
+                <field name="item_count"/>
+                <field name="approved_count"/>
+                <field name="produced_count"/>
+                <field name="ready_count"/>
+                <field name="line_summary"/>
+                <field name="currency_id"/>
+                <progressbar field="deadline_state" colors='{"on_track": "success", "due_soon": "warning", "overdue": "danger", "done": "info"}' sum_field="amount_total"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click o_kma_card o_kma_dl_{{ record.deadline_state.raw_value }}">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title"><field name="partner_id"/></strong>
+                                    <div class="small text-muted"><field name="name"/> · <field name="sale_order_id"/></div>
+                                </div>
+                                <field name="priority" widget="priority"/>
+                            </div>
+                            <div class="small my-1 text-truncate" t-att-title="record.line_summary.value"><field name="line_summary"/></div>
+                            <div class="d-flex flex-wrap gap-1 my-1">
+                                <t t-foreach="(record.process_labels.raw_value or '').split(', ').filter(p => p)" t-as="proc" t-key="proc">
+                                    <span class="badge rounded-pill o_kma_tag" t-out="proc"/>
+                                </t>
+                            </div>
+                            <field name="stage_bar_html"/>
+                            <div class="d-flex justify-content-between small text-muted mt-1">
+                                <span title="Artwork approved"><i class="fa fa-file-image-o me-1" title="Artwork"/><t t-out="record.approved_count.raw_value"/>/<t t-out="record.item_count.raw_value"/></span>
+                                <span title="Produced"><i class="fa fa-cogs me-1" title="Produced"/><t t-out="record.produced_count.raw_value"/>/<t t-out="record.item_count.raw_value"/></span>
+                                <span title="Ready"><i class="fa fa-cube me-1" title="Ready"/><t t-out="record.ready_count.raw_value"/>/<t t-out="record.item_count.raw_value"/></span>
+                            </div>
+                            <div class="o_kanban_record_bottom mt-2">
+                                <div class="oe_kanban_bottom_left">
+                                    <field name="date_deadline" widget="remaining_days"/>
+                                    <field name="activity_ids" widget="kanban_activity"/>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <field name="amount_total" widget="monetary" class="small fw-bold me-2"/>
+                                    <field name="designer_id" widget="many2one_avatar_user"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_printing_job_search" model="ir.ui.view">
+        <field name="name">kma.printing.job.search</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <search string="Printing Jobs">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="sale_order_id"/>
+                <field name="designer_id"/>
+                <field name="line_ids" string="Product" filter_domain="[('line_ids.product_id', 'ilike', self)]"/>
+                <filter name="my_jobs" string="My Jobs" domain="[('designer_id', '=', uid)]"/>
+                <filter name="urgent" string="Urgent" domain="[('priority', '=', '1')]"/>
+                <separator/>
+                <filter name="open" string="Open" domain="[('stage', 'not in', ('delivered', 'cancel'))]"/>
+                <filter name="waiting_customer" string="Waiting for Customer" domain="[('line_ids.stage', '=', 'awaiting_approval')]"/>
+                <filter name="overdue" string="Overdue" domain="[('deadline_state', '=', 'overdue')]"/>
+                <filter name="due_soon" string="Due Soon" domain="[('deadline_state', '=', 'due_soon')]"/>
+                <separator/>
+                <filter name="to_invoice" string="Delivered, Not Invoiced" domain="[('stage', '=', 'delivered'), ('sale_order_id.invoice_status', '=', 'to invoice')]"/>
+                <separator/>
+                <filter name="filter_deadline" string="Deadline" date="date_deadline"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage'}"/>
+                    <filter name="group_designer" string="Designer" context="{'group_by': 'designer_id'}"/>
+                    <filter name="group_customer" string="Customer" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_deadline_state" string="Deadline Status" context="{'group_by': 'deadline_state'}"/>
+                    <filter name="group_deadline" string="Deadline" context="{'group_by': 'date_deadline:week'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_printing_job_calendar" model="ir.ui.view">
+        <field name="name">kma.printing.job.calendar</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <calendar string="Production Planning" date_start="date_deadline" color="designer_id" mode="month"
+                      quick_create="0" event_open_popup="1">
+                <field name="partner_id"/>
+                <field name="line_summary"/>
+                <field name="stage"/>
+                <field name="designer_id" filters="1" avatar_field="avatar_128"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_printing_job_pivot" model="ir.ui.view">
+        <field name="name">kma.printing.job.pivot</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <pivot string="Printing Jobs Analysis" sample="1">
+                <field name="stage" type="col"/>
+                <field name="designer_id" type="row"/>
+                <field name="amount_total" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_printing_job_graph" model="ir.ui.view">
+        <field name="name">kma.printing.job.graph</field>
+        <field name="model">kma.printing.job</field>
+        <field name="arch" type="xml">
+            <graph string="Printing Jobs" type="bar" stacked="1" sample="1">
+                <field name="stage"/>
+                <field name="deadline_state"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Printing Item (one product of a job)
+         ============================================================ -->
+    <record id="view_printing_job_line_form" model="ir.ui.view">
+        <field name="name">kma.printing.job.line.form</field>
+        <field name="model">kma.printing.job.line</field>
+        <field name="arch" type="xml">
+            <form string="Printing Item" create="0">
+                <header>
+                    <button name="action_send_proof" type="object" string="Send for Approval" class="btn-primary"
+                            icon="fa-paper-plane" invisible="stage != 'artwork_pending' or proof_state != 'draft'"/>
+                    <button name="action_skip_artwork" type="object" string="Skip Artwork"
+                            invisible="stage != 'artwork_pending'" groups="kma_printing_job.group_printing_manager"
+                            confirm="Skip customer approval for this item and allow production?"/>
+                    <button name="action_approve_proof" type="object" string="Approve Proof" class="btn-primary"
+                            icon="fa-check" invisible="stage != 'awaiting_approval'"/>
+                    <button name="action_open_reject_wizard" type="object" string="Request Changes"
+                            icon="fa-undo" invisible="stage != 'awaiting_approval'"/>
+                    <button name="action_create_mo" type="object" string="Create MO" class="btn-primary"
+                            icon="fa-cogs" invisible="stage != 'approved'"
+                            help="Manufacturing orders are created automatically when the artwork is approved. Use this if that failed, after a cancelled order, or for an item that needs no artwork."/>
+                    <button name="action_qc_pass" type="object" string="QC Passed" class="btn-primary"
+                            icon="fa-check-square-o" invisible="stage != 'qc'"/>
+                    <field name="stage" widget="statusbar" readonly="1"
+                           statusbar_visible="artwork_pending,awaiting_approval,approved,in_production,qc,ready,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_job" type="object" class="oe_stat_button" icon="fa-print">
+                            <div class="o_stat_info">
+                                <span class="o_stat_value"><field name="job_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="o_stat_text">Printing Job</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <span class="text-muted text-uppercase small">Printing item</span>
+                        <h1><field name="product_id" readonly="1" options="{'no_open': True}"/></h1>
+                        <div class="text-muted">
+                            <field name="partner_id" readonly="1" class="d-inline fw-bold text-body" options="{'no_open': True}"/>
+                            · <field name="product_uom_qty" readonly="1" class="d-inline"/> <field name="product_uom" readonly="1" class="d-inline" options="{'no_open': True}"/>
+                        </div>
+                    </div>
+                    <field name="status_hint" nolabel="1" readonly="1" class="o_kma_banner_field w-100" invisible="not status_hint"/>
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <group>
+                                <field name="name" readonly="1" string="Specification"/>
+                                <field name="print_process"/>
+                                <field name="designer_id" widget="many2one_avatar_user" readonly="stage in ('delivered', 'cancel')"/>
+                                <field name="date_deadline" widget="remaining_days"/>
+                                <field name="production_id" invisible="not production_id"/>
+                                <field name="production_state" widget="badge" invisible="not production_id"/>
+                                <field name="date_proof_sent" invisible="not date_proof_sent"/>
+                                <field name="date_approved" invisible="not date_approved"/>
+                                <field name="date_ready" invisible="not date_ready"/>
+                                <field name="brief_file_count" string="Reference Files"
+                                       invisible="not brief_file_count"/>
+                                <field name="job_id" invisible="1"/>
+                                <field name="proof_state" invisible="1"/>
+                                <field name="requires_artwork" invisible="1"/>
+                                <field name="has_brief" invisible="1"/>
+                            </group>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="o_kma_proof_card">
+                                <div class="o_kma_proof_head">
+                                    <span><i class="fa fa-picture-o me-1" title="Proof"/>Current proof <field name="proof_version" readonly="1" class="d-inline ms-1"/></span>
+                                    <field name="proof_state" widget="badge" readonly="1" invisible="not proof_state"
+                                           decoration-success="proof_state == 'approved'" decoration-danger="proof_state == 'rejected'"
+                                           decoration-info="proof_state == 'sent'"/>
+                                </div>
+                                <field name="current_proof_image" widget="image" readonly="1" class="o_kma_proof_img"
+                                       invisible="not current_proof_image"/>
+                                <div class="o_kma_proof_empty" invisible="current_proof_image">
+                                    <i class="fa fa-file-image-o fa-2x mb-2" title="No preview"/>
+                                    <div>No image preview. Add a PNG or JPG proof to see it here.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <notebook>
+                        <page string="Requirement" name="requirement">
+                            <div class="alert alert-warning o_kma_brief_nudge" role="alert"
+                                 invisible="has_brief or stage not in ('artwork_pending', 'awaiting_approval')">
+                                <i class="fa fa-inbox me-1" title="Requirement"/>
+                                Nothing recorded yet. Write what the customer asked for and attach the files
+                                they sent - the designer works from this, not from memory.
+                            </div>
+                            <field name="brief_note" nolabel="1" class="o_kma_brief_note"
+                                   placeholder="What the customer asked for: text content, sizes, colours, what to change from the last job, anything they said on the phone..."/>
+                            <separator string="Files the customer sent"/>
+                            <p class="text-muted small mb-2">Logo, text content, photos, a scan of the old
+                                print, a sample - whatever came with the request.</p>
+                            <field name="brief_attachment_ids" widget="many2many_binary" nolabel="1"/>
+                        </page>
+                        <page string="Artwork" name="proofs" invisible="not requires_artwork">
+                            <p class="text-muted small mb-2">Add the proof file below, then use
+                                <b>Send for Approval</b> at the top. Every version is kept - a sent proof
+                                cannot be deleted.</p>
+                            <field name="proof_ids" readonly="stage != 'artwork_pending'">
+                                <tree editable="bottom" decoration-success="state == 'approved'"
+                                      decoration-danger="state == 'rejected'" decoration-info="state == 'sent'">
+                                    <field name="preview_image" widget="image" options="{'size': [40, 40]}" readonly="1" string=""/>
+                                    <field name="name" string="Version" readonly="1"/>
+                                    <field name="file" filename="filename" widget="binary"/>
+                                    <field name="filename" column_invisible="True"/>
+                                    <field name="state" widget="badge" readonly="1"
+                                           decoration-success="state == 'approved'" decoration-danger="state == 'rejected'"
+                                           decoration-info="state == 'sent'"/>
+                                    <field name="date_sent"/>
+                                    <field name="decided_by"/>
+                                    <field name="customer_comment"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Quality Check" name="qc" invisible="stage not in ('qc', 'ready', 'delivered')">
+                            <field name="qc_line_ids" readonly="stage != 'qc'">
+                                <tree editable="bottom" create="0" delete="0">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="done" widget="boolean_toggle"/>
+                                    <field name="done_by"/>
+                                    <field name="done_date"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_printing_job_line_tree" model="ir.ui.view">
+        <field name="name">kma.printing.job.line.tree</field>
+        <field name="model">kma.printing.job.line</field>
+        <field name="arch" type="xml">
+            <tree create="0" decoration-muted="stage == 'cancel'">
+                <field name="current_proof_image" widget="image" options="{'size': [40, 40]}" string=""/>
+                <field name="job_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="product_uom_qty"/>
+                <field name="designer_id" widget="many2one_avatar_user" optional="show"/>
+                <field name="proof_version" string="Proof"/>
+                <field name="proof_state" widget="badge" string="Artwork"
+                       decoration-success="proof_state == 'approved'" decoration-danger="proof_state == 'rejected'"
+                       decoration-info="proof_state == 'sent'"/>
+                <field name="production_id" optional="show"/>
+                <field name="date_deadline" widget="remaining_days" optional="show"/>
+                <field name="stage" widget="badge"
+                       decoration-success="stage in ('ready', 'delivered')" decoration-warning="stage in ('artwork_pending', 'awaiting_approval')"
+                       decoration-info="stage in ('approved', 'in_production', 'qc')"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_printing_job_line_kanban" model="ir.ui.view">
+        <field name="name">kma.printing.job.line.kanban</field>
+        <field name="model">kma.printing.job.line</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="stage" class="o_kanban_small_column o_kma_kanban" records_draggable="0"
+                    group_create="0" group_delete="0" group_edit="0" quick_create="0" create="0" sample="1">
+                <field name="id"/>
+                <field name="stage"/>
+                <field name="deadline_state"/>
+                <field name="priority"/>
+                <field name="proof_state"/>
+                <field name="proof_version"/>
+                <field name="days_waiting"/>
+                <field name="qc_percent"/>
+                <field name="has_brief"/>
+                <field name="brief_file_count"/>
+                <field name="production_state"/>
+                <field name="current_proof_id"/>
+                <progressbar field="deadline_state" colors='{"on_track": "success", "due_soon": "warning", "overdue": "danger", "done": "info"}'/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click o_kma_card o_kma_dl_{{ record.deadline_state.raw_value }}">
+                            <div class="d-flex gap-2">
+                                <div class="o_kma_thumb">
+                                    <img t-if="record.current_proof_id.raw_value" alt="Proof"
+                                         t-att-src="kanban_image('kma.printing.job.line', 'current_proof_image', record.id.raw_value)"/>
+                                    <i t-else="" class="fa fa-file-image-o text-muted" title="No proof"/>
+                                </div>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="d-flex justify-content-between">
+                                        <strong class="text-truncate"><field name="product_id"/></strong>
+                                        <field name="priority" widget="priority" readonly="1"/>
+                                    </div>
+                                    <div class="small text-muted text-truncate"><field name="partner_id"/></div>
+                                    <div class="small text-muted"><field name="job_id"/> · <field name="product_uom_qty"/> <field name="product_uom"/></div>
+                                </div>
+                            </div>
+                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                <span t-if="record.proof_state.raw_value" t-attf-class="badge rounded-pill o_kma_proof_{{ record.proof_state.raw_value }}">
+                                    <t t-out="record.proof_version.raw_value"/> <t t-out="record.proof_state.value"/>
+                                </span>
+                                <span t-if="record.production_state.raw_value" class="badge rounded-pill o_kma_tag">
+                                    <field name="production_id"/>
+                                </span>
+                                <span t-if="!record.has_brief.raw_value and record.stage.raw_value == 'artwork_pending'"
+                                      class="badge rounded-pill o_kma_no_brief" title="No customer requirement recorded">
+                                    <i class="fa fa-inbox me-1"/>No requirement
+                                </span>
+                                <span t-if="record.brief_file_count.raw_value" class="badge rounded-pill o_kma_tag"
+                                      title="Reference files from the customer">
+                                    <i class="fa fa-paperclip me-1"/><t t-out="record.brief_file_count.raw_value"/>
+                                </span>
+                            </div>
+                            <div t-if="record.stage.raw_value == 'awaiting_approval'" class="small o_kma_wait mt-1">
+                                <i class="fa fa-hourglass-half me-1" title="Waiting"/>
+                                <t t-if="record.days_waiting.raw_value">Waiting <t t-out="record.days_waiting.raw_value"/> day(s)</t>
+                                <t t-else="">Sent today</t>
+                            </div>
+                            <div t-if="record.stage.raw_value == 'qc'" class="mt-1">
+                                <div class="d-flex justify-content-between small text-muted"><span>Quality check</span><span><t t-out="record.qc_percent.raw_value"/>%</span></div>
+                                <div class="progress o_kma_progress"><div class="progress-bar" t-attf-style="width: {{ record.qc_percent.raw_value }}%"/></div>
+                            </div>
+                            <div class="o_kanban_record_bottom mt-2">
+                                <div class="oe_kanban_bottom_left"><field name="date_deadline" widget="remaining_days"/></div>
+                                <div class="oe_kanban_bottom_right"><field name="designer_id" widget="many2one_avatar_user"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_printing_job_line_search" model="ir.ui.view">
+        <field name="name">kma.printing.job.line.search</field>
+        <field name="model">kma.printing.job.line</field>
+        <field name="arch" type="xml">
+            <search string="Printing Items">
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="job_id"/>
+                <field name="designer_id"/>
+                <filter name="my_items" string="My Items" domain="[('designer_id', '=', uid)]"/>
+                <filter name="open" string="Open" domain="[('stage', 'not in', ('delivered', 'cancel'))]"/>
+                <filter name="needs_proof" string="Needs Proof" domain="[('stage', '=', 'artwork_pending')]"/>
+                <filter name="waiting" string="Waiting for Customer" domain="[('stage', '=', 'awaiting_approval')]"/>
+                <filter name="overdue" string="Overdue" domain="[('deadline_state', '=', 'overdue')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_stage" string="Stage" context="{'group_by': 'stage'}"/>
+                    <filter name="group_job" string="Printing Job" context="{'group_by': 'job_id'}"/>
+                    <filter name="group_designer" string="Designer" context="{'group_by': 'designer_id'}"/>
+                    <filter name="group_process" string="Process" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Actions
+         ============================================================ -->
+    <record id="action_printing_job_items" model="ir.actions.act_window">
+        <field name="name">Artwork &amp; Production Board</field>
+        <field name="res_model">kma.printing.job.line</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_printing_job_line_kanban')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_printing_job_line_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_printing_job_line_form')})]"/>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No printing items yet</p>
+            <p>Each printable product on a confirmed sales order becomes an item here, with its own artwork and production.</p>
+        </field>
+    </record>
+
+    <record id="action_printing_job_planning" model="ir.actions.act_window">
+        <field name="name">Production Planning</field>
+        <field name="res_model">kma.printing.job</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="context">{'search_default_open': 1}</field>
+    </record>
+
+    <record id="action_printing_job_analysis" model="ir.actions.act_window">
+        <field name="name">Jobs Analysis</field>
+        <field name="res_model">kma.printing.job</field>
+        <field name="view_mode">graph,pivot,tree,form</field>
+    </record>
+
+    <record id="action_printing_job" model="ir.actions.act_window">
+        <field name="name">Printing Jobs</field>
+        <field name="res_model">kma.printing.job</field>
+        <field name="view_mode">kanban,tree,form,calendar,pivot,graph,activity</field>
+        <field name="context">{'search_default_open': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No printing jobs yet</p>
+            <p>A printing job is created automatically when a sales order with printable products is confirmed.</p>
+        </field>
+    </record>
+</odoo>
